@@ -1,7 +1,26 @@
+# Environment / Secrets
 .env
+.env.*
+!.env.example
+
+# Python
 .venv/
 __pycache__/
 *.py[cod]
+
+# Node
 node_modules/
+frontend/node_modules/
+
+# Database / local data
+*.db
+*.sqlite3
+data/
+
+# Build files
 dist/
-.DS_Store
+build/
+
+# IDE
+.vscode/
+.idea/
