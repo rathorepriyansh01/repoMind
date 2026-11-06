@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import logging
 from functools import lru_cache
-
-from sentence_transformers import SentenceTransformer
+from typing import Any
 
 from app.config import get_settings
 
@@ -11,10 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
-def get_embedding_model() -> SentenceTransformer:
+def get_embedding_model() -> Any:
     """
-    Load the embedding model once and reuse it for all requests.
+    Load the embedding model only when embeddings are actually needed.
+    This keeps FastAPI startup fast on deployment platforms.
     """
+
+    # Import here instead of module level.
+    # This prevents PyTorch / SentenceTransformer from loading during API startup.
+    from sentence_transformers import SentenceTransformer
 
     settings = get_settings()
 
@@ -32,18 +36,12 @@ def get_embedding_model() -> SentenceTransformer:
 
 
 def embed_documents(texts: list[str]) -> list[list[float]]:
-    """
-    Create normalized embeddings for repository code chunks.
-    """
+    """Create normalized embeddings for repository code chunks."""
 
     if not texts:
         return []
 
-    cleaned_texts = [
-        text.strip()
-        for text in texts
-        if text and text.strip()
-    ]
+    cleaned_texts = [text.strip() for text in texts if text and text.strip()]
 
     if not cleaned_texts:
         return []
@@ -61,9 +59,7 @@ def embed_documents(texts: list[str]) -> list[list[float]]:
 
 
 def embed_query(query: str) -> list[float] | None:
-    """
-    Create a normalized embedding for a user's search question.
-    """
+    """Create a normalized embedding for a search question."""
 
     if not query or not query.strip():
         return None
